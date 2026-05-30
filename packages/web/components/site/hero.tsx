@@ -12,7 +12,6 @@ export function Hero(): JSX.Element {
       <div className="card-gradient-pools absolute inset-0 -z-10" />
       <div className="card-gradient-sheen absolute -inset-[10%] -z-10" />
       <div className="card-gradient-beam absolute inset-0 -z-10" />
-      <div className="card-grain absolute inset-0 -z-10" />
 
       {/* Card Content */}
       <div className="flex flex-col items-center justify-center gap-[30px]">
@@ -20,7 +19,7 @@ export function Hero(): JSX.Element {
           {SITE_CONFIG.eyebrow}
         </p>
 
-        <h1 className="m-0 text-balance text-[clamp(64px,12vw,168px)] font-medium leading-[0.98] tracking-[-0.03em] text-[color:var(--text-primary)]">
+        <h1 className="wordmark m-0 text-balance text-[clamp(64px,12vw,168px)] font-medium leading-[0.98] tracking-[-0.03em] text-[color:var(--text-primary)]">
           {SITE_CONFIG.wordmark}
         </h1>
 

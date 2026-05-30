@@ -9,12 +9,9 @@ export default function manifest(): MetadataRoute.Manifest {
     display: "standalone",
     background_color: "#14154d",
     theme_color: "#2a2dbf",
-    icons: [
-      {
-        src: "/icon.png",
-        sizes: "512x512",
-        type: "image/png",
-      },
-    ],
+    // No icons array: the browser favicon comes from the app/icon.png file
+    // convention; duplicating it here triggers a second eager favicon fetch
+    // that lands on the Lantern LCP critical path. PWA installability isn't a
+    // goal for this marketing site.
   }
 }

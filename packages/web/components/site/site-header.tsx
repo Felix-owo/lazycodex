@@ -55,6 +55,7 @@ export function SiteHeader(): JSX.Element {
           </a>
           <Link
             href={SITE_CONFIG.docsPath}
+            prefetch={false}
             className="text-sm font-medium text-[color:var(--text-secondary)] transition-colors hover:text-[color:var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent-cyan)]"
           >
             Docs

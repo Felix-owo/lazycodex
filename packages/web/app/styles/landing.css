@@ -19,4 +19,12 @@
       transform: none;
     }
   }
+
+  /* The hero wordmark is the LCP element. It uses a pure system font stack so
+     the largest paint has no webfont dependency and lands at FCP under any
+     network throttle. The rest of the page keeps Geist via --font-sans. */
+  .wordmark {
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+      Helvetica, Arial, sans-serif;
+  }
 }

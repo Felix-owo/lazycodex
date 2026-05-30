@@ -14,12 +14,14 @@ export function DocsCta(): JSX.Element {
       <div className="mt-8 flex flex-wrap justify-center gap-4">
         <Link
           href={SITE_CONFIG.docsPath}
+          prefetch={false}
           className="rounded-md bg-[color:var(--text-primary)] px-6 py-3 font-medium text-[color:var(--surface-base)] transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent-cyan)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--surface-panel)]"
         >
           Read the Docs
         </Link>
         <Link
           href={`${SITE_CONFIG.docsPath}#ulw-loop`}
+          prefetch={false}
           className="rounded-md border border-white/20 bg-transparent px-6 py-3 font-medium text-[color:var(--text-primary)] transition-colors hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent-cyan)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--surface-panel)]"
         >
           How Ultrawork works
