@@ -109,6 +109,6 @@ The landing page is a single scrollable document with the following sections, to
 - **Boulder art**: Generated via `imagegen` on a chroma background, keyed to alpha so it composites cleanly on the navy canvas without a visible bounding box
 - **Delivery format**: Served as AVIF / WebP / PNG via a `<picture>` element using the `BrandImage` component
 - **Dimensions**: Explicit `width` and `height` attributes on every image to prevent CLS
-- **Favicon / app-icon**: The rock boulder is reused as the site favicon and Apple touch icon:
-  - `app/icon.png`
-  - `app/apple-icon.png`
+- **Favicon / app-icon**: The simplified boulder mark from the sticky header is the canonical site icon so browser chrome, pinned tabs, and the in-page wordmark read as one identity:
+  - `app/icon.svg` for the scalable browser favicon
+  - `app/apple-icon.png` at 180x180 for Apple touch surfaces, generated from the same mark
