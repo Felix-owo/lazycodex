@@ -28,11 +28,7 @@ const result = spawnSync("npx", commandArgs, {
 })
 
 if (result.error) {
-  if (result.error.code === "ENOENT") {
-    console.error("npx not found on PATH. Install Node.js 20+ from https://nodejs.org.")
-  } else {
-    console.error(result.error.message)
-  }
+  console.error(result.error.message)
   process.exit(1)
 }
 
