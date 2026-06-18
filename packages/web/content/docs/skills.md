@@ -2,7 +2,7 @@ LazyCodex is most useful as a harness for complex codebases: project memory, pla
 
 ### Built-in workflows
 
-Start with `/init-deep` when the repository is too large or too old to explain from memory. It generates hierarchical `AGENTS.md` context so agents can find the right files before they change code.
+Start with `$init-deep` when the repository is too large or too old to explain from memory. It generates hierarchical `AGENTS.md` context so agents can find the right files before they change code.
 
 Use `$ulw-plan` when the work needs decisions before implementation, `$start-work` when a plan should be executed, and `$ulw-loop` when you want the agent to keep going until the result is verified.
 

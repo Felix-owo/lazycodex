@@ -1,26 +1,68 @@
 export type DocSectionId =
   | "overview"
   | "installation"
-  | "skills"
-  | "ultrawork"
-  | "ulw-loop"
+  | "getting-started"
+  | "init-deep"
   | "ulw-plan"
-  | "start-work";
+  | "start-work"
+  | "ulw-loop"
+  | "ultrawork"
+  | "discipline-agents"
+  | "model-routing"
+  | "hooks-lifecycle"
+  | "skills"
+  | "configuration"
+  | "cli";
 
 export type DocSection = {
   readonly id: DocSectionId;
   readonly file: string;
   readonly title: string;
+  readonly group: string;
 };
 
+// Ordered list of sidebar groups. Each group renders as a category header with
+// its sections nested underneath, matching the lzx.vibetip.help docs layout.
+export const DOC_GROUPS: readonly string[] = [
+  "Install",
+  "Getting started",
+  "Commands",
+  "Concepts",
+  "Skills",
+  "Reference",
+];
+
 export const DOC_SECTIONS: readonly DocSection[] = [
-  { id: "overview", file: "overview.md", title: "Overview" },
-  { id: "installation", file: "installation.md", title: "Installation" },
-  { id: "skills", file: "skills.md", title: "Feature coverage" },
-  { id: "ultrawork", file: "ultrawork.md", title: "ultrawork mode" },
-  { id: "ulw-loop", file: "ulw-loop.md", title: "$ulw-loop" },
-  { id: "ulw-plan", file: "ulw-plan.md", title: "$ulw-plan" },
-  { id: "start-work", file: "start-work.md", title: "$start-work" },
+  { id: "installation", file: "installation.md", group: "Install", title: "Installation" },
+  { id: "overview", file: "overview.md", group: "Getting started", title: "Overview" },
+  { id: "getting-started", file: "getting-started.md", group: "Getting started", title: "Getting started" },
+  { id: "init-deep", file: "init-deep.md", group: "Commands", title: "$init-deep" },
+  { id: "ulw-plan", file: "ulw-plan.md", group: "Commands", title: "$ulw-plan" },
+  { id: "start-work", file: "start-work.md", group: "Commands", title: "$start-work" },
+  { id: "ulw-loop", file: "ulw-loop.md", group: "Commands", title: "$ulw-loop" },
+  { id: "ultrawork", file: "ultrawork.md", group: "Concepts", title: "ultrawork mode" },
+  { id: "discipline-agents", file: "discipline-agents.md", group: "Concepts", title: "Hephaestus" },
+  { id: "model-routing", file: "model-routing.md", group: "Concepts", title: "Multi-model routing" },
+  { id: "hooks-lifecycle", file: "hooks-lifecycle.md", group: "Concepts", title: "Hooks & Lifecycle" },
+  { id: "skills", file: "skills.md", group: "Skills", title: "Feature coverage" },
+  { id: "configuration", file: "configuration.md", group: "Reference", title: "Configuration" },
+  { id: "cli", file: "cli.md", group: "Reference", title: "CLI" },
 ] as const;
 
 export const DOC_SECTION_IDS = DOC_SECTIONS.map((s) => s.id);
+
+export function sectionsByGroup(group: string): readonly DocSection[] {
+  return DOC_SECTIONS.filter((s) => s.group === group);
+}
+
+export function neighborSections(id: DocSectionId): {
+  prev: DocSection | undefined;
+  next: DocSection | undefined;
+} {
+  const index = DOC_SECTIONS.findIndex((s) => s.id === id);
+  if (index === -1) return { prev: undefined, next: undefined };
+  return {
+    prev: index > 0 ? DOC_SECTIONS[index - 1] : undefined,
+    next: index < DOC_SECTIONS.length - 1 ? DOC_SECTIONS[index + 1] : undefined,
+  };
+}

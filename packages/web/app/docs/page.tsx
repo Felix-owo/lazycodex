@@ -1,22 +1,34 @@
 import type { Metadata } from "next";
-import { DocsShell } from "@/components/docs/docs-shell";
+import { DocsShell, type SectionView } from "@/components/docs/docs-shell";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
-import { DOC_SECTIONS } from "@/lib/docs-sections";
-import { loadDocSource } from "@/lib/docs-source";
+import { DOC_SECTIONS, neighborSections } from "@/lib/docs-sections";
+import { loadDocSource, loadDocToc } from "@/lib/docs-source";
+import { SITE_CONFIG } from "@/lib/site-config";
 import "@/app/styles/docs.css";
 
 export const metadata: Metadata = {
   title: "Documentation",
   description:
-    "LazyCodex documentation for the OmO agent harness: install, project memory, skills, ultrawork mode, $ulw-loop, $ulw-plan, and $start-work.",
+    "LazyCodex documentation for the OmO agent harness: install, getting started, commands, concepts, skills, and reference.",
   alternates: {
     canonical: "/docs",
   },
 };
 
 export default function DocsPage() {
-  const sections = DOC_SECTIONS.map((s) => ({ id: s.id, title: s.title }));
+  const sections: SectionView[] = DOC_SECTIONS.map((s) => {
+    const { prev, next } = neighborSections(s.id);
+    return {
+      id: s.id,
+      title: s.title,
+      group: s.group,
+      html: loadDocSource(s.file),
+      toc: loadDocToc(s.file),
+      prev,
+      next,
+    };
+  });
 
   return (
     <>
@@ -26,29 +38,17 @@ export default function DocsPage() {
       <SiteHeader />
       <main id="content" className="docs-page">
         <div className="docs-hero">
+          <div className="docs-hero-badge">
+            <span className="docs-hero-dot" aria-hidden="true" />
+            {SITE_CONFIG.version}
+          </div>
           <h1 className="docs-hero-title">Documentation</h1>
           <p className="docs-hero-tagline">
-            Learn how to install and run the OmO harness inside Codex for complex codebases.
+            Install and run the OmO harness inside Codex for complex codebases —
+            project memory, planning, execution, and verified completion.
           </p>
         </div>
-        <DocsShell sections={sections}>
-          {DOC_SECTIONS.map((s) => (
-            <section
-              key={s.id}
-              id={s.id}
-              aria-labelledby={`${s.id}-title`}
-              className="docs-section"
-            >
-              <h2 id={`${s.id}-title`} className="docs-section-title">
-                {s.title}
-              </h2>
-              <article
-                className="docs-content"
-                dangerouslySetInnerHTML={{ __html: loadDocSource(s.file) }}
-              />
-            </section>
-          ))}
-        </DocsShell>
+        <DocsShell sections={sections} />
       </main>
       <SiteFooter />
     </>

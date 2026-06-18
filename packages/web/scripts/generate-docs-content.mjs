@@ -6,14 +6,23 @@ import path from "node:path";
 import { Marked } from "marked";
 
 // Fixed, ordered section list. Key = output map key (the markdown file name).
+// Grouped for the sidebar: Install / Getting started / Commands / Concepts /
+// Skills / Reference.
 const SECTIONS = [
-  { id: "overview", file: "overview.md" },
-  { id: "installation", file: "installation.md" },
-  { id: "skills", file: "skills.md" },
-  { id: "ultrawork", file: "ultrawork.md" },
-  { id: "ulw-loop", file: "ulw-loop.md" },
-  { id: "ulw-plan", file: "ulw-plan.md" },
-  { id: "start-work", file: "start-work.md" },
+  { id: "overview", file: "overview.md", group: "Getting started", title: "Overview" },
+  { id: "installation", file: "installation.md", group: "Install", title: "Installation" },
+  { id: "getting-started", file: "getting-started.md", group: "Getting started", title: "Getting started" },
+  { id: "init-deep", file: "init-deep.md", group: "Commands", title: "$init-deep" },
+  { id: "ulw-plan", file: "ulw-plan.md", group: "Commands", title: "$ulw-plan" },
+  { id: "start-work", file: "start-work.md", group: "Commands", title: "$start-work" },
+  { id: "ulw-loop", file: "ulw-loop.md", group: "Commands", title: "$ulw-loop" },
+  { id: "ultrawork", file: "ultrawork.md", group: "Concepts", title: "ultrawork mode" },
+  { id: "discipline-agents", file: "discipline-agents.md", group: "Concepts", title: "Hephaestus" },
+  { id: "model-routing", file: "model-routing.md", group: "Concepts", title: "Multi-model routing" },
+  { id: "hooks-lifecycle", file: "hooks-lifecycle.md", group: "Concepts", title: "Hooks & Lifecycle" },
+  { id: "skills", file: "skills.md", group: "Skills", title: "Feature coverage" },
+  { id: "configuration", file: "configuration.md", group: "Reference", title: "Configuration" },
+  { id: "cli", file: "cli.md", group: "Reference", title: "CLI" },
 ];
 
 const DOCS_ROOT = path.resolve(process.cwd(), "content", "docs");
@@ -60,14 +69,38 @@ function createMarked() {
   return marked;
 }
 
+// Inject id attributes into <h2>/<h3> and collect a table of contents for the
+// section. Done as a post-parse string transform so it is robust across marked
+// versions (no renderer API dependency).
+function injectHeadingIds(html) {
+  const toc = [];
+  const withIds = html.replace(/<(h[23])>(.*?)<\/\1>/g, (match, tag, inner) => {
+    const text = inner.replace(/<[^>]+>/g, "").trim();
+    const id = slugify(text);
+    if (!id) return match;
+    const level = tag === "h2" ? 2 : 3;
+    toc.push({ level, id, text });
+    return `<${tag} id="${id}">${inner}</${tag}>`;
+  });
+  return { withIds, toc };
+}
+
 const sources = {};
+const tocs = {};
 for (const section of SECTIONS) {
   const markdown = await readFile(path.join(DOCS_ROOT, section.file), "utf8");
   // JSON.stringify (below) escapes backticks/${} safely — never template strings.
-  sources[section.file] = await createMarked().parse(markdown);
+  const rawHtml = await createMarked().parse(markdown);
+  const { withIds, toc } = injectHeadingIds(rawHtml);
+  sources[section.file] = withIds;
+  tocs[section.file] = toc;
 }
 
-const out = `${BANNER}export const DOC_SOURCES: Record<string, string> = ${JSON.stringify(sources, null, 2)};\n`;
+const out =
+  `${BANNER}` +
+  `export const DOC_SOURCES: Record<string, string> = ${JSON.stringify(sources, null, 2)};\n\n` +
+  `export type DocHeading = { level: number; id: string; text: string };\n` +
+  `export const DOC_TOC: Record<string, DocHeading[]> = ${JSON.stringify(tocs, null, 2)};\n`;
 
 async function outputIsCurrent(content) {
   try {
