@@ -6,16 +6,16 @@ import { join } from "node:path"
 import { createServer, type AddressInfo } from "node:net"
 
 /**
- * Real-Chrome Lighthouse audit attached to Playwright's chromium via CDP.
+ * Real-Chrome Lighthouse audit attached to Playwright's Chrome via CDP.
  *
  * Per frontend-perfectionist tenet #1: NEVER trust the lighthouse CLI;
  * NEVER measure a dev server. We measure the production `next start` server
  * spun up by playwright.config.ts.
  *
- * Pattern: launch Playwright's chromium with `--remote-debugging-port=<free>`,
+ * Pattern: launch Playwright's Chrome channel with `--remote-debugging-port=<free>`,
  * then point lighthouse() at the same port. This is the path the skill
  * recommends ("attach Lighthouse to the Playwright CDP endpoint") and it
- * avoids the chrome-launcher NO_FCP flake we hit with a separate Chrome.
+ * keeps the audit on real Chrome stable without ever invoking Lighthouse CLI.
  *
  * The page is pre-warmed three times with fetch() before the audit so the
  * Next.js server has fully resolved chunks + fonts + route metadata.
@@ -85,31 +85,14 @@ async function lighthouseOnce(
 ): Promise<LighthouseResult | undefined> {
   const cdpPort = await findFreePort()
   // Per frontend-perfectionist skill tenet #1: launch REAL Chrome stable
-  // (channel: "chrome") not the bundled chromium-headless-shell. Chromium's
-  // headless-shell hits NO_FCP reliably when Lighthouse audits run; Chrome
-  // stable's headless mode is battle-tested in production. Falls back to
-  // bundled chromium if Chrome is not installed locally.
-  // macOS headless Chrome + Lighthouse FCP detection is unreliable (NO_FCP
-  // on every attempt regardless of flags or channel). Real Chrome window
-  // with the OS compositor paints reliably. In CI (Ubuntu), headless is
-  // fine — switched via CI env var.
-  const useHeadless = process.env.CI === "true" || process.env.CI === "1"
-  const launchOptions: Parameters<ChromiumModule["launch"]>[0] = {
-    headless: useHeadless,
+  // (channel: "chrome"), not the Lighthouse CLI and not Chromium headless-shell.
+  // Do not gate this by CI/macOS env vars; a missing Chrome install is a hard
+  // test failure because the audit contract is "real Chrome or no pass".
+  const browser = await chromium.launch({
+    headless: true,
     args: [`--remote-debugging-port=${cdpPort}`, "--no-sandbox", "--disable-dev-shm-usage"],
     channel: "chrome",
-  }
-  let browser
-  try {
-    browser = await chromium.launch(launchOptions)
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err)
-    console.warn(`[Lighthouse] Chrome channel unavailable (${msg}); falling back to bundled chromium`)
-    browser = await chromium.launch({
-      headless: useHeadless,
-      args: [`--remote-debugging-port=${cdpPort}`, "--no-sandbox", "--disable-dev-shm-usage"],
-    })
-  }
+  })
   try {
     const context = await browser.newContext()
     const page = await context.newPage()
@@ -232,28 +215,7 @@ async function runLighthouse(
 
 test.describe.configure({ mode: "serial" })
 
-/*
- * macOS local environment hits NO_FCP on every Lighthouse audit — verified
- * across chrome-launcher, Playwright chromium, Chrome-stable channel, and
- * headed mode. The page itself is correct (20/22 other tests pass). This
- * is a documented macOS quirk: window-server compositor + Lighthouse's
- * paint-event detection. CI Ubuntu has reliable headless Chrome paint.
- *
- * Strategy:
- *   - Locally on macOS: skip (the suite as a whole still gates content,
- *     SEO, and responsive correctness).
- *   - CI (process.env.CI=true): runs the audit. The web-ci.yml workflow
- *     sets up Chrome and Xvfb and is the source of truth for the 100s.
- *   - Post-deploy: web-deploy.yml runs PageSpeed Insights against the
- *     live https://lazycodex.ai URL — that's the canonical score.
- */
-const SKIP_LOCAL_LIGHTHOUSE = !process.env.CI && process.platform === "darwin"
-
-test.describe("@lighthouse — Lighthouse 100/100/100/100 (Playwright chromium + CDP)", () => {
-  test.skip(
-    SKIP_LOCAL_LIGHTHOUSE,
-    "Lighthouse audit runs reliably only on CI (macOS local has NO_FCP issues).",
-  )
+test.describe("@lighthouse — Lighthouse 100/100/100/100 (Playwright Chrome + CDP)", () => {
 
   test("mobile preset hits 100 in every category", async ({ baseURL, playwright }) => {
     test.setTimeout(240_000)
