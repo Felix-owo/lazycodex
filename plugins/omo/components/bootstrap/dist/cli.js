@@ -2204,17 +2204,33 @@ async function trustedHookStatesForPlugin(input) {
   if (!await exists4(manifestPath))
     return [];
   const manifest = JSON.parse(await readFile11(manifestPath, "utf8"));
-  if (!isPlainRecord(manifest) || typeof manifest.hooks !== "string")
+  if (!isPlainRecord(manifest))
     return [];
-  const hooksPath = join16(input.pluginRoot, manifest.hooks);
-  if (!await exists4(hooksPath))
-    return [];
-  const parsed = JSON.parse(await readFile11(hooksPath, "utf8"));
-  if (!isPlainRecord(parsed) || !isPlainRecord(parsed.hooks))
-    return [];
-  const keySource = `${input.pluginName}@${input.marketplaceName}:${stripDotSlash(manifest.hooks)}`;
   const states = [];
-  for (const [eventName, groups] of Object.entries(parsed.hooks)) {
+  for (const hookPath of hookManifestPaths(manifest.hooks)) {
+    const hooksPath = join16(input.pluginRoot, hookPath);
+    if (!await exists4(hooksPath))
+      continue;
+    const parsed = JSON.parse(await readFile11(hooksPath, "utf8"));
+    if (!isPlainRecord(parsed) || !isPlainRecord(parsed.hooks))
+      continue;
+    states.push(...trustedHookStatesForHooksFile({
+      keySource: `${input.pluginName}@${input.marketplaceName}:${hookPath}`,
+      hooks: parsed.hooks
+    }));
+  }
+  return states;
+}
+function hookManifestPaths(value) {
+  if (typeof value === "string" && value.trim() !== "")
+    return [stripDotSlash(value)];
+  if (!Array.isArray(value))
+    return [];
+  return value.filter((item) => typeof item === "string" && item.trim() !== "").map(stripDotSlash);
+}
+function trustedHookStatesForHooksFile(input) {
+  const states = [];
+  for (const [eventName, groups] of Object.entries(input.hooks)) {
     if (!Array.isArray(groups))
       continue;
     const eventLabel = EVENT_LABELS.get(eventName);
@@ -2230,7 +2246,7 @@ async function trustedHookStatesForPlugin(input) {
           continue;
         if (typeof handler.command !== "string" || handler.command.trim() === "")
           continue;
-        const key = `${keySource}:${eventLabel}:${groupIndex}:${handlerIndex}`;
+        const key = `${input.keySource}:${eventLabel}:${groupIndex}:${handlerIndex}`;
         states.push({ key, trustedHash: commandHookHash(eventLabel, group.matcher, handler) });
       }
     }
