@@ -4,6 +4,26 @@ LazyCodex ports a single discipline agent from OmO into Codex: **Hephaestus**, t
 
 Named after the Greek god of the forge. Goal-oriented: you give it objectives, not step-by-step recipes, and it executes them end-to-end. "The Legitimate Craftsman." Methodical, thorough, obsessive — built for deep architectural reasoning, complex debugging, and cross-domain synthesis.
 
+### Installed roles
+
+As of `4.12.1`, the following roles are installed. When Codex exposes `agent_type`, the role is set directly; otherwise the role description is included in the message as a fallback.
+
+| Role | Primary use |
+| --- | --- |
+| `explorer` | Internal codebase context: structure, call flows, test locations. |
+| `librarian` | External docs, library contracts, latest API research. |
+| `plan` | Plan drafting and task decomposition. |
+| `momus` / `metis` | Missing decisions, edge cases, risk review. |
+| `lazycodex-executor` | Executing specific task units from a plan. |
+| `lazycodex-code-reviewer` | Post-implementation code quality review. |
+| `lazycodex-qa-executor` | Real-execution-based QA. |
+| `lazycodex-gate-reviewer` | Pre-completion verification gates. |
+| `lazycodex-clone-fidelity-reviewer` | Clone and sync operation fidelity checks. |
+
+### Parent session ownership
+
+Even with multiple roles, completion judgment is never handed wholesale to a sub-agent. The parent Codex session keeps ownership of goals, constraints, and final judgment. Sub-agents are used to read terrain, find gaps, or assist review.
+
 ### The operating loop
 
 Hephaestus runs a short, tight loop on every unit of work:
@@ -14,7 +34,7 @@ Hephaestus runs a short, tight loop on every unit of work:
 4. **Verify** — prove it works. LSP diagnostics on changed files, related tests, and build — in parallel where possible.
 5. **Manually QA** — drive the artifact through its real surface (HTTP call, tmux, browser), then write the final message.
 
-### What it never does
+### Non-goals
 
 - **Never trusts subagent self-reports.** Verification is independent; a child saying "done" does not close the work.
 - **Never proposes when you asked for code.** Unless you explicitly want a plan or a brainstorm, it implements.
@@ -24,6 +44,10 @@ Hephaestus runs a short, tight loop on every unit of work:
 ### Delegation, not orchestration
 
 Hephaestus stays the parent. For parallel exploration it spawns read-only Codex subagent roles (`multi_agent_v1.spawn_agent`) and keeps the parent session live with brief status updates while children run. It does not hand the run off to a separate orchestrator — it owns the goal, delegates the grunt work, and verifies the results itself.
+
+### Boulder state
+
+`$start-work` uses `.omo/boulder.json` to persist progress and the Stop-hook continuation to keep plan execution moving. This is the core visible behavior: checkboxes advance, and when all are done it prints **ORCHESTRATION COMPLETE**.
 
 ### Where the boulder comes from
 

@@ -1,7 +1,9 @@
 export type DocSectionId =
   | "overview"
   | "installation"
+  | "recommended-environment"
   | "getting-started"
+  | "faq"
   | "init-deep"
   | "ulw-plan"
   | "start-work"
@@ -38,8 +40,10 @@ export const DOC_GROUPS: readonly string[] = [
 
 export const DOC_SECTIONS: readonly DocSection[] = [
   { id: "installation", file: "installation.md", group: "Install", title: "Installation" },
+  { id: "recommended-environment", file: "recommended-environment.md", group: "Install", title: "Recommended environment" },
   { id: "overview", file: "overview.md", group: "Getting started", title: "Overview" },
   { id: "getting-started", file: "getting-started.md", group: "Getting started", title: "Getting started" },
+  { id: "faq", file: "faq.md", group: "Getting started", title: "FAQ" },
   { id: "init-deep", file: "init-deep.md", group: "Commands", title: "$init-deep" },
   { id: "ulw-plan", file: "ulw-plan.md", group: "Commands", title: "$ulw-plan" },
   { id: "start-work", file: "start-work.md", group: "Commands", title: "$start-work" },
